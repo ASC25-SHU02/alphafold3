@@ -222,7 +222,7 @@ _BUCKETS = flags.DEFINE_list(
 )
 _FLASH_ATTENTION_IMPLEMENTATION = flags.DEFINE_enum(
     'flash_attention_implementation',
-    default='xla',#默认是triton 改为xla在cpu上运行
+    default='triton',#默认是triton 改为xla在cpu上运行
     enum_values=['triton', 'cudnn', 'xla'],
     help=(
         "Flash attention implementation to use. 'triton' and 'cudnn' uses a"
@@ -656,12 +656,12 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     # Check if running on CPU
-    cpu_devices = jax.local_devices(backend='cpu')
-    if cpu_devices:
-      print("Running on CPU.")
-    else:
+    # cpu_devices = jax.local_devices(backend='cpu')
+    # if cpu_devices:
+    #   print("Running on CPU.")
+    # else:
       # Fail early on incompatible devices, but only if we're running inference.
-      gpu_devices = jax.local_devices(backend='gpu')
+    gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
         compute_capability = float(gpu_devices[0].compute_capability)
         if compute_capability < 6.0:
@@ -722,12 +722,12 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     #Check if running on CPU
-    devices = jax.local_devices(backend='cpu')
-    if devices:
-        print(f'Found local CPU devices: {devices}')
-    else:
-        devices = jax.local_devices(backend='gpu')
-        print(f'Found local GPU devices: {devices}')
+    # devices = jax.local_devices(backend='cpu')
+    # if devices:
+    #     print(f'Found local CPU devices: {devices}')
+    # else:
+    devices = jax.local_devices(backend='gpu')
+    print(f'Found local GPU devices: {devices}')    
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
