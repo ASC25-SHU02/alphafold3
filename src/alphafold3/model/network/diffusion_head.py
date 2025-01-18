@@ -24,7 +24,8 @@ import chex
 import haiku as hk
 import jax
 import jax.numpy as jnp
-
+import numpy as np
+import os
 
 # Carefully measured by averaging multimer training set.
 SIGMA_DATA = 16.0
@@ -34,6 +35,11 @@ def fourier_embeddings(x: jnp.ndarray, dim: int) -> jnp.ndarray:
   w_key, b_key = jax.random.split(jax.random.PRNGKey(42))
   weight = jax.random.normal(w_key, shape=[dim])
   bias = jax.random.uniform(b_key, shape=[dim])
+  # 定义保存路径
+  save_dir = "/home/jovyan/AlphaFold_data"
+ # 保存文件
+  np.save(os.path.join(save_dir, "fourier_weight.npy"), np.array(weight))
+  np.save(os.path.join(save_dir, "fourier_bias.npy"), np.array(bias))
   return jnp.cos(2 * jnp.pi * (x[..., None] * weight + bias))
 
 

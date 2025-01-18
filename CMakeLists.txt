@@ -8,6 +8,10 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+set(ZLIB_ROOT /home/jovyan/Downloads/zlib-1.3.1/)
+# set(ZLIB_LIBRARY /home/jovyan/Downloads/zlib-1.3.1/lib)  
+# set(ZLIB_INCLUDE_DIR /home/jovyan/Downloads/zlib-1.3.1/include)
+
 cmake_minimum_required(VERSION 3.28)
 project(
   "${SKBUILD_PROJECT_NAME}"

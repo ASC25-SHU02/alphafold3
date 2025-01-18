@@ -222,7 +222,7 @@ _BUCKETS = flags.DEFINE_list(
 )
 _FLASH_ATTENTION_IMPLEMENTATION = flags.DEFINE_enum(
     'flash_attention_implementation',
-    default='triton',
+    default='xla',#默认是triton 改为xla在cpu上运行
     enum_values=['triton', 'cudnn', 'xla'],
     help=(
         "Flash attention implementation to use. 'triton' and 'cudnn' uses a"
@@ -655,24 +655,29 @@ def main(_):
     raise
 
   if _RUN_INFERENCE.value:
-    # Fail early on incompatible devices, but only if we're running inference.
-    gpu_devices = jax.local_devices(backend='gpu')
-    if gpu_devices:
-      compute_capability = float(gpu_devices[0].compute_capability)
-      if compute_capability < 6.0:
-        raise ValueError(
-            'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
-            ' https://developer.nvidia.com/cuda-gpus).'
-        )
-      elif 7.0 <= compute_capability < 8.0:
-        xla_flags = os.environ.get('XLA_FLAGS')
-        required_flag = '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
-        if not xla_flags or required_flag not in xla_flags:
+    # Check if running on CPU
+    cpu_devices = jax.local_devices(backend='cpu')
+    if cpu_devices:
+      print("Running on CPU.")
+    else:
+      # Fail early on incompatible devices, but only if we're running inference.
+      gpu_devices = jax.local_devices(backend='gpu')
+      if gpu_devices:
+        compute_capability = float(gpu_devices[0].compute_capability)
+        if compute_capability < 6.0:
           raise ValueError(
-              'For devices with GPU compute capability 7.x (see'
-              ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS must'
-              f' include "{required_flag}".'
+              'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
+              ' https://developer.nvidia.com/cuda-gpus).'
           )
+        elif 7.0 <= compute_capability < 8.0:
+          xla_flags = os.environ.get('XLA_FLAGS')
+          required_flag = '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
+          if not xla_flags or required_flag not in xla_flags:
+            raise ValueError(
+                'For devices with GPU compute capability 7.x (see'
+                ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS must'
+                f' include "{required_flag}".'
+            )
 
   notice = textwrap.wrap(
       'Running AlphaFold 3. Please note that standard AlphaFold 3 model'
@@ -716,8 +721,13 @@ def main(_):
     data_pipeline_config = None
 
   if _RUN_INFERENCE.value:
-    devices = jax.local_devices(backend='gpu')
-    print(f'Found local devices: {devices}')
+    #Check if running on CPU
+    devices = jax.local_devices(backend='cpu')
+    if devices:
+        print(f'Found local CPU devices: {devices}')
+    else:
+        devices = jax.local_devices(backend='gpu')
+        print(f'Found local GPU devices: {devices}')
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
@@ -756,4 +766,5 @@ if __name__ == '__main__':
   flags.mark_flags_as_required([
       'output_dir',
   ])
-  app.run(main)
+  with jax.profiler.trace("/tmp/alpha3", create_perfetto_link=True):
+    app.run(main)
