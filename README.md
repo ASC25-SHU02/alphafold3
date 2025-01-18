@@ -1,3 +1,70 @@
+# Installation and Running
+
+
+## GPU
+
+1. `git clone https://github.com/ASC25-SHU02/alphafold3.git`in **branch main**
+2. `bash non-docker_alphafold3_install.sh`(may need to install zlib)
+   You can now run AlphaFold 3!
+
+For example:
+
+```
+cd alphafold3
+python run_alphafold.py \
+      --json_path=/home/jovyan/AlphaFold_data/processed/37aa_2JO9.json \
+      --model_dir=/home/jovyan/AlphaFold_data \
+      --output_dir=output_DIR \
+      --norun_data_pipeline
+```
+
+> - Single input file: Use the `--json_path` flag followed by the path to a
+>   single JSON file.
+
+> - Multiple input files: Use the `--input_dir` flag followed by the path to a
+>   directory of JSON files.
+
+input files are in the folder **/home/jovyan/AlphaFold_data/processed**
+
+## CPU
+
+1. `git clone https://github.com/ASC25-SHU02/alphafold3.git`in **branch cpu**
+2. set in your terminal
+   `export JAX_PLATFORMS=cpu`
+3. inference command is the same as above
+
+## Output
+
+```
+hello_fold/
+├── seed-1234_sample-0/
+│   ├── confidences.json
+│   ├── model.cif
+│   └── summary_confidences.json
+├── seed-1234_sample-1/
+│   ├── confidences.json
+│   ├── model.cif
+│   └── summary_confidences.json
+├── seed-1234_sample-2/
+│   ├── confidences.json
+│   ├── model.cif
+│   └── summary_confidences.json
+├── seed-1234_sample-3/
+│   ├── confidences.json
+│   ├── model.cif
+│   └── summary_confidences.json
+├── seed-1234_sample-4/
+│   ├── confidences.json
+│   ├── model.cif
+│   └── summary_confidences.json
+├── TERMS_OF_USE.md
+├── hello_fold_confidences.json
+├── hello_fold_data.json
+├── hello_fold_model.cif
+├── hello_fold_summary_confidences.json
+└── ranking_scores.csv
+```
+
 ![header](docs/header.jpg)
 
 # AlphaFold 3
