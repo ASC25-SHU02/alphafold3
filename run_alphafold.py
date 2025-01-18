@@ -222,7 +222,7 @@ _BUCKETS = flags.DEFINE_list(
 )
 _FLASH_ATTENTION_IMPLEMENTATION = flags.DEFINE_enum(
     'flash_attention_implementation',
-    default='triton',#默认是triton 改为xla在cpu上运行
+    default='xla',#默认是triton 改为xla在cpu上运行
     enum_values=['triton', 'cudnn', 'xla'],
     help=(
         "Flash attention implementation to use. 'triton' and 'cudnn' uses a"
@@ -656,12 +656,12 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     # Check if running on CPU
-    # cpu_devices = jax.local_devices(backend='cpu')
-    # if cpu_devices:
-    #   print("Running on CPU.")
-    # else:
+    cpu_devices = jax.local_devices(backend='cpu')
+    if cpu_devices:
+      print("Running on CPU.")
+    else:
       # Fail early on incompatible devices, but only if we're running inference.
-    gpu_devices = jax.local_devices(backend='gpu')
+      gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
         compute_capability = float(gpu_devices[0].compute_capability)
         if compute_capability < 6.0:
@@ -678,6 +678,8 @@ def main(_):
                 ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS must'
                 f' include "{required_flag}".'
             )
+     
+    
 
   notice = textwrap.wrap(
       'Running AlphaFold 3. Please note that standard AlphaFold 3 model'
@@ -722,25 +724,26 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     #Check if running on CPU
-    # devices = jax.local_devices(backend='cpu')
-    # if devices:
-    #     print(f'Found local CPU devices: {devices}')
-    # else:
-    devices = jax.local_devices(backend='gpu')
-    print(f'Found local GPU devices: {devices}')    
+    devices = jax.local_devices(backend='cpu')
+    if devices:
+        print(f'Found local CPU devices: {devices}')
+    else:
+        devices = jax.local_devices(backend='gpu')
+        print(f'Found local GPU devices: {devices}')    
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
-        config=make_model_config(
-            flash_attention_implementation=typing.cast(
-                attention.Implementation, _FLASH_ATTENTION_IMPLEMENTATION.value
+            config=make_model_config(
+                flash_attention_implementation=typing.cast(
+                    attention.Implementation, _FLASH_ATTENTION_IMPLEMENTATION.value
+                ),
+                num_diffusion_samples=_NUM_DIFFUSION_SAMPLES.value,
+                return_embeddings=_SAVE_EMBEDDINGS.value,
             ),
-            num_diffusion_samples=_NUM_DIFFUSION_SAMPLES.value,
-            return_embeddings=_SAVE_EMBEDDINGS.value,
-        ),
-        device=devices[0],
-        model_dir=pathlib.Path(MODEL_DIR.value),
-    )
+            device=devices[0],
+            model_dir=pathlib.Path(MODEL_DIR.value),
+        )     
+    
   else:
     print('Skipping running model inference.')
     model_runner = None
