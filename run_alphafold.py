@@ -766,5 +766,5 @@ if __name__ == '__main__':
   flags.mark_flags_as_required([
       'output_dir',
   ])
-  with jax.profiler.trace("/tmp/alpha3", create_perfetto_link=True):
-    app.run(main)
+  #with jax.profiler.trace("/tmp/alpha3", create_perfetto_link=True):
+  app.run(main)
